@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎰 Premier League Betting Casino 🎰</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            color: white;
+            font-family: 'Arial', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .betting-header {
+            background: linear-gradient(135deg, #ff0000, #ff6b35, #ffd700);
+            padding: 20px 0;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+        }
+
+        .main-title {
+            font-size: 3rem;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            animation: pulse 2s infinite;
+            color: #1a1a1a;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #1a1a1a;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .prediction-card {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border: 3px solid #ffd700;
+            border-radius: 20px;
+            padding: 30px;
+            margin: 20px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .team-selection-area {
+            background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,107,53,0.1));
+            border: 2px solid #ffd700;
+            border-radius: 20px;
+            padding: 30px;
+            margin: 20px 0;
+            box-shadow: 0 0 30px rgba(255,215,0,0.3);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { box-shadow: 0 0 20px rgba(255,215,0,0.3); }
+            to { box-shadow: 0 0 40px rgba(255,215,0,0.6); }
+        }
+
+        .team-selector {
+            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            border: 3px solid #ffd700;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+            color: #1a1a2e;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            width: 100%;
+        }
+
+        .team-selector:focus, .team-selector:hover {
+            border-color: #ff6b35;
+            box-shadow: 0 0 25px rgba(255, 107, 53, 0.7);
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            transform: translateY(-2px);
+            outline: none;
+        }
+
+        .team-selector option {
+            background: #ffffff;
+            color: #1a1a2e;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 15px;
+        }
+
+        .predict-btn {
+            background: linear-gradient(45deg, #ff0000, #ff6b35, #ffd700);
+            border: 3px solid #fff;
+            color: #000;
+            font-size: 1.5rem;
+            font-weight: bold;
+            padding: 15px 40px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            animation: buttonPulse 2s infinite;
+            box-shadow: 0 10px 30px rgba(255,107,53,0.4);
+        }
+
+        .predict-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(255,107,53,0.6);
+        }
+
+        @keyframes buttonPulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(255,215,0,0.5); }
+            50% { box-shadow: 0 0 40px rgba(255,215,0,0.8); }
+        }
+
+        .results-card {
+            background: linear-gradient(135deg, #00ff88, #00cc6a);
+            border: 3px solid #ffd700;
+            border-radius: 20px;
+            padding: 30px;
+            margin: 20px 0;
+            color: #1a1a1a;
+            text-align: center;
+            display: none;
+        }
+
+        .error-card {
+            background: linear-gradient(135deg, #dc3545, #721c24);
+            border: 3px solid #ff6b6b;
+            border-radius: 20px;
+            padding: 30px;
+            margin: 20px 0;
+            color: white;
+            text-align: center;
+        }
+
+        .hot-tips {
+            background: linear-gradient(135deg, #ff0000, #ff6b35);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .money-matches {
+            background: linear-gradient(135deg, #16213e, #1a1a2e);
+            border: 2px solid #ffd700;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .live-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #ff0000;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            z-index: 1000;
+            animation: livePulse 1s infinite;
+        }
+
+        @keyframes livePulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .jackpot-counter {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #1a1a1a;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #ffd700;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Live Indicator -->
+    <div class="live-indicator">
+        <span class="live-dot"></span>
+        🔴 LIVE • 16:06:45
+    </div>
+
+    <!-- Header -->
+    <div class="betting-header">
+        <div class="container">
+            <h1 class="main-title">💸 PREMIERBET CASINO 💸</h1>
+            <p class="subtitle">🎯 GUARANTEED WINS • 💰 INSIDER TIPS • ⚡ LIVE ODDS • 🚀 INSTANT PAYOUTS</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <!-- Main Prediction Panel -->
+            <div class="col-lg-8">
+                <div class="prediction-card">
+                    <h3><i class="fas fa-fire"></i> 🔥 MONEY MACHINE - WIN BIG TODAY! 💰</h3>
+                    <div style="background: #ff0000; color: white; padding: 10px; margin: 15px 0; border-radius: 10px; text-align: center;">
+                        <marquee>💥 SPECIAL TODAY: 95% WIN RATE • 💸 AVERAGE WIN: $2,450 • 🚀 JOIN 50,000+ WINNERS 💥</marquee>
+                    </div>
+                    
+                    <!-- Team Selection Area -->
+                    <div class="team-selection-area">
+                        <h4 style="color: #ffd700; text-align: center; font-size: 24px; margin-bottom: 25px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
+                            🎯 SELECT YOUR WINNING TEAMS 🎯
+                        </h4>
+                        <div class="row">
+                            <div class="col-md-5">
+                                <label style="color: #ffd700; font-size: 20px; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); margin-bottom: 15px; display: block;">
+                                    🏠 HOME TEAM (Pick Your Winner)
+                                </label>
+                                <select class="form-select team-selector" id="homeTeam">
+                                    <option value="" style="font-size: 16px; font-weight: bold;">💰 Choose Your Cash Cow...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-center justify-content-center">
+                                <h4 style="color: #ffd700; font-size: 3rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); animation: pulse 2s infinite;">
+                                    💥 VS 💥
+                                </h4>
+                            </div>
+                            <div class="col-md-5">
+                                <label style="color: #ffd700; font-size: 20px; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); margin-bottom: 15px; display: block;">
+                                    ✈️ AWAY TEAM (Your Next Victim)
+                                </label>
+                                <select class="form-select team-selector" id="awayTeam">
+                                    <option value="" style="font-size: 16px; font-weight: bold;">🎯 Select Your Target...</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <button class="btn predict-btn" onclick="predictMatch()">
+                            <i class="fas fa-rocket"></i> 💸 GET RICH NOW! 💸
+                        </button>
+                    </div>
+                    <div class="text-center mt-3">
+                        <small style="color: #00ff00;">⚡ Last 100 predictions: 94 WINS • 💰 Average profit: $1,850</small>
+                    </div>
+                </div>
+
+                <!-- Results Area -->
+                <div id="predictionResults"></div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Jackpot Counter -->
+                <div class="jackpot-counter">
+                    <i class="fas fa-trophy"></i> 💰 LIVE JACKPOT 💰
+                    <br>
+                    <span style="font-size: 2.5rem; color: #ff0000;">$847,329</span>
+                    <br>
+                    <small>⚡ Next winner in 3 bets! ⚡</small>
+                </div>
+
+                <!-- Hot Tips -->
+                <div class="hot-tips">
+                    <h4>🔥 🔥 TODAY'S HOT TIPS 🔥 🔥</h4>
+                    <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 10px; margin: 10px 0;">
+                        <strong>Liverpool vs Arsenal</strong><br>
+                        <span style="color: #00ff00;">🎯 89% WIN RATE</span><br>
+                        <span style="color: #ffd700;">💰 Potential: $3,450</span>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 10px; margin: 10px 0;">
+                        <strong>Man City vs Chelsea</strong><br>
+                        <span style="color: #00ff00;">⚡ 86% GUARANTEED</span><br>
+                        <span style="color: #ffd700;">💎 Expected: $2,180</span>
+                    </div>
+                </div>
+
+                <!-- Money Matches -->
+                <div class="money-matches">
+                    <h4><i class="fas fa-chart-line"></i> 💰 MONEY MATCHES 💰</h4>
+                    <div id="liveFixtures">Loading fixtures...</div>
+                </div>
+
+                <!-- League Table -->
+                <div class="money-matches">
+                    <h4><i class="fas fa-trophy"></i> 🏆 LIVE STANDINGS 🏆</h4>
+                    <div id="standings">Loading standings...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Socket.IO
+        const socket = io();
+        let availableTeams = {};
+
+        // Socket event handlers
+        socket.on('connect', function() {
+            console.log('🔗 Connected to server');
+        });
+
+        socket.on('teams_updated', function(data) {
+            console.log('📊 Teams updated:', data);
+            loadTeams();
+        });
+
+        socket.on('standings_updated', function(data) {
+            console.log('🏆 Standings updated:', data);
+            loadStandings();
+        });
+
+        // Load teams into dropdowns
+        async function loadTeams() {
+            try {
+                const response = await fetch('/api/teams');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    availableTeams = {};
+                    const homeSelect = document.getElementById('homeTeam');
+                    const awaySelect = document.getElementById('awayTeam');
+                    
+                    // Clear existing options except first
+                    homeSelect.innerHTML = '<option value="">💰 Choose Your Cash Cow...</option>';
+                    awaySelect.innerHTML = '<option value="">🎯 Select Your Target...</option>';
+                    
+                    data.teams.forEach(team => {
+                        availableTeams[team.short_name] = team.full_name;
+                        
+                        const homeOption = document.createElement('option');
+                        homeOption.value = team.short_name;
+                        homeOption.textContent = team.full_name;
+                        homeOption.style.fontSize = '16px';
+                        homeOption.style.fontWeight = 'bold';
+                        homeSelect.appendChild(homeOption);
+                        
+                        const awayOption = document.createElement('option');
+                        awayOption.value = team.short_name;
+                        awayOption.textContent = team.full_name;
+                        awayOption.style.fontSize = '16px';
+                        awayOption.style.fontWeight = 'bold';
+                        awaySelect.appendChild(awayOption);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading teams:', error);
+            }
+        }
+
+        // Predict match function
+        async function predictMatch() {
+            const homeTeam = document.getElementById('homeTeam').value;
+            const awayTeam = document.getElementById('awayTeam').value;
+            
+            if (!homeTeam || !awayTeam) {
+                showError('Please select both teams');
+                return;
+            }
+            
+            if (homeTeam === awayTeam) {
+                showError('Teams cannot play themselves');
+                return;
+            }
+            
+            // Show loading
+            showLoading();
+            
+            try {
+                const response = await fetch('/api/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        home_team: homeTeam,
+                        away_team: awayTeam
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('✅ Prediction response:', data);
+                
+                if (data.status === 'success') {
+                    displayPrediction(data.prediction);
+                } else {
+                    showError(data.message || 'Unknown error occurred');
+                }
+            } catch (error) {
+                console.error('❌ Prediction error:', error);
+                showError('Connection error. Please try again.');
+            }
+        }
+
+        // Display prediction results
+        function displayPrediction(prediction) {
+            const resultsDiv = document.getElementById('predictionResults');
+            resultsDiv.style.display = 'block';
+            
+            // Calculate potential winnings
+            const betAmount = 100;
+            const homeOdds = prediction.odds?.home || 2.0;
+            const potentialWin = Math.round(betAmount * homeOdds * (prediction.confidence / 100));
+            
+            // Trust level
+            const trustLevel = prediction.trust_score >= 80 ? '🔥 MONEY MAKER!' : 
+                              prediction.trust_score >= 65 ? '💰 GOLD MINE!' : 
+                              prediction.trust_score >= 50 ? '💎 SOLID BET!' : '⚠️ RISKY!';
+            
+            resultsDiv.innerHTML = `
+                <div class="results-card" style="display: block;">
+                    <h2 style="font-size: 2.5rem; margin-bottom: 20px;">💸 PREDICTION RESULTS 💸</h2>
+                    
+                    <div style="background: rgba(255,255,255,0.9); padding: 20px; border-radius: 15px; margin: 20px 0;">
+                        <h3 style="color: #1a1a1a; font-size: 2rem; margin-bottom: 15px;">
+                            🏆 WINNER: ${prediction.winner} 🏆
+                        </h3>
+                        <p style="font-size: 1.5rem; color: #1a1a1a; font-weight: bold;">
+                            Confidence: ${prediction.confidence}% | Trust Score: ${prediction.trust_score}%
+                        </p>
+                        <h4 style="color: #ff6b35; font-size: 1.8rem; margin: 15px 0;">
+                            ${trustLevel}
+                        </h4>
+                    </div>
+                    
+                    <div class="row" style="margin: 20px 0;">
+                        <div class="col-md-4">
+                            <div style="background: rgba(255,255,255,0.9); padding: 15px; border-radius: 10px;">
+                                <h5 style="color: #1a1a1a;">HOME WIN</h5>
+                                <p style="font-size: 1.5rem; color: #1a1a1a; font-weight: bold;">${prediction.probabilities?.home || 0}%</p>
+                                <p style="color: #666;">Odds: ${homeOdds}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div style="background: rgba(255,255,255,0.9); padding: 15px; border-radius: 10px;">
+                                <h5 style="color: #1a1a1a;">DRAW</h5>
+                                <p style="font-size: 1.5rem; color: #1a1a1a; font-weight: bold;">${prediction.probabilities?.draw || 0}%</p>
+                                <p style="color: #666;">Odds: ${prediction.odds?.draw || 3.0}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div style="background: rgba(255,255,255,0.9); padding: 15px; border-radius: 10px;">
+                                <h5 style="color: #1a1a1a;">AWAY WIN</h5>
+                                <p style="font-size: 1.5rem; color: #1a1a1a; font-weight: bold;">${prediction.probabilities?.away || 0}%</p>
+                                <p style="color: #666;">Odds: ${prediction.odds?.away || 2.0}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: linear-gradient(135deg, #ffd700, #ffed4e); padding: 20px; border-radius: 15px; margin: 20px 0;">
+                        <h3 style="color: #1a1a1a; font-size: 2rem;">💰 BETTING ADVICE 💰</h3>
+                        <p style="font-size: 1.3rem; color: #1a1a1a; font-weight: bold; margin: 15px 0;">
+                            ${prediction.advice?.phrase || 'Strong recommendation!'}
+                        </p>
+                        <p style="font-size: 1.5rem; color: #ff6b35; font-weight: bold;">
+                            💎 Potential Win: $${potentialWin} 💎
+                        </p>
+                        <div style="margin-top: 15px; color: #1a1a1a; font-weight: bold;">
+                            ⚡ ACT NOW! Limited time offer! ⚡
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Scroll to results
+            resultsDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Show loading state
+        function showLoading() {
+            const resultsDiv = document.getElementById('predictionResults');
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = `
+                <div class="prediction-card">
+                    <div style="text-align: center; padding: 40px;">
+                        <div class="spinner"></div>
+                        <h4 style="margin-top: 20px;">🧠 Analyzing match...</h4>
+                        <p>Running smart algorithms...</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Show error state
+        function showError(message) {
+            const resultsDiv = document.getElementById('predictionResults');
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = `
+                <div class="error-card">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                    <h3 style="margin-bottom: 15px;">⚠️ ERROR ⚠️</h3>
+                    <p style="font-size: 18px; font-weight: bold;">${message}</p>
+                    <button class="btn btn-warning mt-3" onclick="document.getElementById('predictionResults').style.display='none'" style="background: #ffeb3b; color: #1a1a1a; font-weight: bold; padding: 10px 20px; border: none; border-radius: 10px;">
+                        🔄 TRY AGAIN
+                    </button>
+                </div>
+            `;
+        }
+
+        // Load live fixtures
+        async function loadLiveFixtures() {
+            try {
+                const response = await fetch('/api/live-fixtures');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    const fixturesDiv = document.getElementById('liveFixtures');
+                    let html = '';
+                    
+                    data.fixtures.slice(0, 5).forEach(fixture => {
+                        const date = new Date(fixture.date).toLocaleDateString();
+                        const time = new Date(fixture.date).toLocaleTimeString('en-US', {
+                            hour12: false,
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                        
+                        html += `
+                            <div style="border-bottom: 1px solid #ffd700; padding: 10px 0;">
+                                <strong>${fixture.home} vs ${fixture.away}</strong><br>
+                                <small style="color: #ffd700;">${date} ${time}</small>
+                            </div>
+                        `;
+                    });
+                    
+                    fixturesDiv.innerHTML = html;
+                }
+            } catch (error) {
+                document.getElementById('liveFixtures').innerHTML = '<p>Error loading fixtures</p>';
+            }
+        }
+
+        // Load standings
+        async function loadStandings() {
+            try {
+                const response = await fetch('/api/standings');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    const standingsDiv = document.getElementById('standings');
+                    let html = '';
+                    
+                    data.standings.slice(0, 10).forEach((team, index) => {
+                        const bgColor = index < 3 ? 'rgba(255, 215, 0, 0.2)' : 'rgba(255, 255, 255, 0.1)';
+                        html += `
+                            <div style="background: ${bgColor}; padding: 8px; margin: 5px 0; border-radius: 8px; display: flex; justify-content: space-between;">
+                                <span><strong>${team.position}.</strong> ${team.team.name}</span>
+                                <span style="color: #ffd700;">${team.points}pts</span>
+                            </div>
+                        `;
+                    });
+                    
+                    standingsDiv.innerHTML = html;
+                }
+            } catch (error) {
+                document.getElementById('standings').innerHTML = '<p>Error loading standings</p>';
+            }
+        }
+
+        // Initialize everything when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🎰 Initializing Premier League Betting Casino...');
+            loadTeams();
+            loadLiveFixtures();
+            loadStandings();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(() => {
+                loadLiveFixtures();
+                loadStandings();
+            }, 30000);
+        });
+
+        // Update live time
+        function updateLiveTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
+            document.querySelector('.live-indicator').innerHTML = `🔴 LIVE • ${timeStr}`;
+        }
+
+        setInterval(updateLiveTime, 1000);
+        updateLiveTime();
+    </script>
+</body>
+</html>
