@@ -2,7 +2,7 @@
 """
 🎮 INTERACTIVE PREMIER LEAGUE BETTING 🎮
 =======================================
-Interactive console version of the betting system.
+Professional console interface for expert football predictions.
 """
 
 import random
